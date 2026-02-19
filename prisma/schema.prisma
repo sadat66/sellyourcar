@@ -1,0 +1,128 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id        String   @id @default(uuid())
+  email     String   @unique
+  fullName  String?
+  phone     String?
+  avatar    String?
+  location  String?
+  bio       String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  listings  Car[]
+  favorites Favorite[]
+  sentMessages     Message[] @relation("SentMessages")
+  receivedMessages Message[] @relation("ReceivedMessages")
+}
+
+model Car {
+  id          String   @id @default(uuid())
+  title       String
+  make        String
+  model       String
+  year        Int
+  price       Float
+  mileage     Int
+  fuelType    FuelType
+  transmission Transmission
+  bodyType    BodyType
+  color       String
+  condition   Condition
+  description String
+  images      String[]
+  location    String
+  features    String[]
+  status      ListingStatus @default(ACTIVE)
+
+  sellerId  String
+  seller    User     @relation(fields: [sellerId], references: [id], onDelete: Cascade)
+
+  favorites Favorite[]
+  messages  Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Favorite {
+  id     String @id @default(uuid())
+  userId String
+  carId  String
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  car  Car  @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, carId])
+}
+
+model Message {
+  id       String @id @default(uuid())
+  content  String
+  read     Boolean @default(false)
+
+  senderId   String
+  receiverId String
+  carId      String
+
+  sender   User @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  receiver User @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  car      Car  @relation(fields: [carId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+}
+
+enum FuelType {
+  PETROL
+  DIESEL
+  ELECTRIC
+  HYBRID
+  CNG
+  LPG
+}
+
+enum Transmission {
+  AUTOMATIC
+  MANUAL
+  CVT
+  DCT
+}
+
+enum BodyType {
+  SEDAN
+  SUV
+  HATCHBACK
+  COUPE
+  CONVERTIBLE
+  WAGON
+  VAN
+  TRUCK
+  PICKUP
+}
+
+enum Condition {
+  NEW
+  LIKE_NEW
+  EXCELLENT
+  GOOD
+  FAIR
+}
+
+enum ListingStatus {
+  ACTIVE
+  SOLD
+  PENDING
+  DRAFT
+}
